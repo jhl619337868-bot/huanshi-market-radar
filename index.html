@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="寰市雷达：全球市场、行业轮动、公司资讯与交易后跟踪原型。" />
+  <title>寰市雷达 · 全球市场决策台</title>
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="theme.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">寰</div>
+        <div><strong>寰市雷达</strong><span>GLOBAL MARKET INTELLIGENCE</span></div>
+      </div>
+      <div class="market-clock">
+        <span class="live-dot"></span><b id="feedStatus">连接真实行情</b>
+        <span id="clock">--:--:--</span>
+        <span class="muted">数据延迟 0.8s</span>
+      </div>
+      <div class="top-actions">
+        <button class="ghost" id="pauseBtn">暂停刷新</button>
+        <button class="primary" id="addTradeBtn">＋ 记录交易</button>
+      </div>
+    </header>
+
+    <nav class="sidebar" aria-label="主导航">
+      <button class="nav-item active" data-view="overview"><span>◫</span>全景</button>
+      <button class="nav-item" data-view="sectors"><span>◇</span>行业</button>
+      <button class="nav-item" data-view="news"><span>⌁</span>资讯</button>
+      <button class="nav-item" data-view="trades"><span>◎</span>交易</button>
+      <button class="nav-item" data-view="sources"><span>✓</span>数据</button>
+      <div class="side-spacer"></div>
+      <div class="risk-badge"><span>风险状态</span><b>中性偏多</b><small>62 / 100</small></div>
+    </nav>
+
+    <main>
+      <section class="hero-row">
+        <div>
+          <p class="eyebrow" id="marketDate">全球市场接力进行中</p>
+          <h1>市场正在交易什么？</h1>
+          <p class="subtitle">美股科技扩散，能源分化；亚洲半导体信号已传导至欧美盘。</p>
+        </div>
+        <div class="session-strip">
+          <div><span>上海</span><b class="closed">已收盘</b><small>+0.42%</small></div>
+          <div><span>东京</span><b class="closed">已收盘</b><small>+1.08%</small></div>
+          <div><span>伦敦</span><b class="live">交易中</b><small>-0.16%</small></div>
+          <div><span>纽约</span><b class="live">交易中</b><small>+0.71%</small></div>
+        </div>
+      </section>
+
+      <section class="metric-grid" id="macroGrid"></section>
+
+      <section class="content-grid">
+        <article class="panel sector-panel">
+          <div class="panel-head">
+            <div><p class="eyebrow">GLOBAL SECTOR CUBE</p><h2>全球行业魔方</h2></div>
+            <div class="sector-controls">
+              <div class="filters market-switch" id="marketSwitch" aria-label="市场范围">
+                <button data-scope="cn">A股</button><button data-scope="hk">港股</button><button class="active" data-scope="global">全球</button>
+              </div>
+              <div class="filters" id="periodFilters">
+                <button data-period="5m">5分</button><button class="active" data-period="1d">今日</button><button data-period="5d">5日</button>
+              </div>
+            </div>
+          </div>
+          <div class="sector-source" id="sectorSource">全球行业 ETF 代理 · 正在更新</div>
+          <div class="sector-grid" id="sectorGrid"></div>
+          <div class="legend"><span>弱势</span><i></i><i></i><i></i><i></i><i></i><span>强势</span><em>方块大小 = 成交活跃度</em></div>
+        </article>
+
+        <aside class="panel pulse-panel">
+          <div class="panel-head"><div><p class="eyebrow">MARKET PULSE</p><h2>市场脉搏</h2></div><span class="score">76</span></div>
+          <div class="pulse-chart" aria-label="模拟市场脉搏图">
+            <canvas id="marketChart" aria-label="纳斯达克综合指数日内真实走势"></canvas>
+            <span class="chart-label high" id="chartState">加载真实走势…</span><span class="chart-label low">开盘</span><span class="chart-label end">当前</span>
+          </div>
+          <div class="pulse-list">
+            <div><span>上涨 / 下跌</span><b>3,218 / 1,904</b></div>
+            <div><span>创新高 / 新低</span><b>186 / 42</b></div>
+            <div><span>板块一致性</span><b class="up">68%</b></div>
+            <div><span>异常成交</span><b class="warn">27只</b></div>
+          </div>
+        </aside>
+
+        <article class="panel linkage-panel">
+          <div class="panel-head">
+            <div><p class="eyebrow">US–CN MARKET LINKAGE</p><h2>美股联动</h2></div>
+            <span class="tag">ETF代理 · 自有映射算法</span>
+          </div>
+          <div class="linkage-summary"><b>隔夜传导方向：<span class="up">偏正向</span></b><span>综合纳指、主题ETF涨跌与历史产业映射，结果仅用于观察。</span></div>
+          <div id="linkageList" class="linkage-list"><p class="muted">正在加载真实美股主题行情…</p></div>
+        </article>
+
+        <article class="panel movers-panel">
+          <div class="panel-head">
+            <div><p class="eyebrow">US STOCK MOVERS</p><h2>异动美股</h2></div>
+            <span class="tag">公开报价 · 15秒刷新</span>
+          </div>
+          <div class="mover-columns"><span>股票名称</span><span>涨幅</span><span>联动A股板块</span></div>
+          <div id="moversList" class="movers-list"><p class="muted">正在扫描重点美股观察池…</p></div>
+        </article>
+
+        <article class="panel news-panel">
+          <div class="panel-head">
+            <div><p class="eyebrow">VERIFIED INTELLIGENCE</p><h2>事实更新</h2></div>
+            <button class="text-btn">查看全部 →</button>
+          </div>
+          <div id="newsList"></div>
+        </article>
+
+        <article class="panel trade-panel">
+          <div class="panel-head">
+            <div><p class="eyebrow">POST-TRADE WATCH</p><h2>交易后跟踪</h2></div>
+            <span class="tag">2个监控中</span>
+          </div>
+          <div class="trade-card" id="tradeCard">
+            <div class="trade-title"><div><strong>英伟达</strong><span>NVDA · NASDAQ</span></div><span class="sold">已卖出</span></div>
+            <div class="price-row"><div><span>模拟跟踪价</span><b id="currentPrice">$178.42</b></div><div><span>演示卖出价</span><b>$184.60</b></div><div><span>卖出后变化</span><b class="down" id="sinceSold">-3.35%</b></div></div>
+            <div class="signal-box">
+              <div class="signal-icon">◉</div>
+              <div><span>系统状态</span><strong>等待回踩确认，不追价</strong><p>接近目标区，但财报事件风险尚未释放。</p></div>
+              <div class="confidence"><b>72%</b><span>置信度</span></div>
+            </div>
+            <div class="condition-list">
+              <div class="done"><i>✓</i><span>价格进入观察区</span><b>$176–179</b></div>
+              <div class="done"><i>✓</i><span>半导体板块维持强势</span><b>+0.84%</b></div>
+              <div><i>○</i><span>成交量缩至安全区</span><b>尚未满足</b></div>
+              <div class="risk"><i>!</i><span>重大事件窗口</span><b>财报前 3小时</b></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="panel source-panel">
+          <div class="panel-head"><div><p class="eyebrow">DATA PROVENANCE</p><h2>数据健康</h2></div><span class="healthy"><i></i>系统正常</span></div>
+          <div class="source-list">
+            <div><span class="source-icon">行</span><div><b>行情主源</b><small id="sourceName">Yahoo Finance 公共报价 · 可能延迟</small></div><strong id="sourceLatency">连接中</strong></div>
+            <div><span class="source-icon">公</span><div><b>官方公告</b><small>交易所披露 · 演示</small></div><strong>正常</strong></div>
+            <div><span class="source-icon">闻</span><div><b>新闻快讯</b><small>多源交叉验证 · 演示</small></div><strong>3源</strong></div>
+          </div>
+          <div class="integrity"><div><span>数据完整度</span><b id="completeness">--</b></div><progress id="healthProgress" max="100" value="0"></progress><p>公开行情仅用于功能演示，可能延迟，不构成投资建议或交易依据。</p></div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="tradeDialog">
+    <form method="dialog" id="tradeForm">
+      <div class="dialog-head"><div><p class="eyebrow">NEW TRADE</p><h2>记录一笔交易</h2></div><button value="cancel" class="close">×</button></div>
+      <label>股票代码<input name="symbol" value="TSLA" required /></label>
+      <div class="form-row"><label>操作<select name="side"><option>卖出</option><option>买入</option></select></label><label>成交价<input name="price" type="number" step="0.01" value="225.80" required /></label></div>
+      <label>交易逻辑<textarea name="reason">趋势破位，先退出观察；等待行业重新转强后考虑买回。</textarea></label>
+      <p class="form-note">保存后系统会建立模拟监控条件，不会执行真实交易。</p>
+      <button value="save" class="primary full">建立跟踪</button>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast">已建立交易后跟踪</div>
+  <script src="app.js"></script>
+</body>
+</html>
+
