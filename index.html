@@ -6,7 +6,7 @@
   <meta name="description" content="寰市雷达：全球市场、行业轮动、公司资讯与交易后跟踪原型。" />
   <title>寰市雷达 · 全球市场决策台</title>
   <link rel="stylesheet" href="styles.css" />
-  <link rel="stylesheet" href="theme.css?v=4" />
+  <link rel="stylesheet" href="theme.css?v=5" />
 </head>
 <body>
   <div class="app-shell">
@@ -136,11 +136,11 @@
         <article class="panel source-panel" data-section="sources">
           <div class="panel-head"><div><p class="eyebrow">DATA PROVENANCE</p><h2>数据健康</h2></div><span class="healthy"><i></i>系统正常</span></div>
           <div class="source-list">
-            <div><span class="source-icon">行</span><div><b>行情主源</b><small id="sourceName">Yahoo Finance 公共报价 · 非交易所实时行情</small></div><strong id="sourceLatency">连接中</strong></div>
+            <div><span class="source-icon">行</span><div><b>行情主源</b><small id="sourceName">A股/港股：腾讯公开行情；全球：Yahoo公共报价</small></div><strong id="sourceLatency">连接中</strong></div>
             <div><span class="source-icon">公</span><div><b>官方公告</b><small>尚未接入交易所公告授权接口</small></div><strong class="warn">待接入</strong></div>
             <div><span class="source-icon">闻</span><div><b>新闻快讯</b><small>尚未接入持牌新闻源</small></div><strong class="warn">待接入</strong></div>
           </div>
-          <div class="integrity"><div><span>数据完整度</span><b id="completeness">--</b></div><progress id="healthProgress" max="100" value="0"></progress><p>公开行情约5分钟刷新，交易所、复权与盘前盘后口径可能和券商不同；不构成投资建议或交易依据。</p></div>
+          <div class="integrity"><div><span>数据完整度</span><b id="completeness">--</b></div><progress id="healthProgress" max="100" value="0"></progress><p>免费公开行情约5分钟刷新，来源无服务稳定性承诺，复权与盘前盘后口径可能和券商不同；仅供展示参考。</p></div>
         </article>
       </section>
     </main>
@@ -158,7 +158,7 @@
   </dialog>
 
   <div class="toast" id="toast">已建立交易后跟踪</div>
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=5"></script>
 </body>
 </html>
 
