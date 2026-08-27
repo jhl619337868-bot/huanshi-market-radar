@@ -37,7 +37,7 @@
     </nav>
 
     <main>
-      <section class="hero-row">
+      <section class="hero-row overview-only">
         <div>
           <p class="eyebrow" id="marketDate">全球市场接力进行中</p>
           <h1>市场正在交易什么？</h1>
@@ -51,10 +51,10 @@
         </div>
       </section>
 
-      <section class="metric-grid" id="macroGrid"></section>
+      <section class="metric-grid overview-only" id="macroGrid"></section>
 
       <section class="content-grid">
-        <article class="panel sector-panel">
+        <article class="panel sector-panel" data-section="sectors">
           <div class="panel-head">
             <div><p class="eyebrow">GLOBAL SECTOR CUBE</p><h2>全球行业魔方</h2></div>
             <div class="sector-controls">
@@ -71,7 +71,7 @@
           <div class="legend"><span>弱势</span><i></i><i></i><i></i><i></i><i></i><span>强势</span><em>方块大小 = 成交活跃度</em></div>
         </article>
 
-        <aside class="panel pulse-panel">
+        <aside class="panel pulse-panel" data-section="sectors">
           <div class="panel-head"><div><p class="eyebrow">MARKET PULSE</p><h2>市场脉搏</h2></div><span class="score">76</span></div>
           <div class="pulse-chart" aria-label="模拟市场脉搏图">
             <canvas id="marketChart" aria-label="纳斯达克综合指数日内真实走势"></canvas>
@@ -85,7 +85,7 @@
           </div>
         </aside>
 
-        <article class="panel linkage-panel">
+        <article class="panel linkage-panel" data-section="sectors">
           <div class="panel-head">
             <div><p class="eyebrow">US–CN MARKET LINKAGE</p><h2>美股联动</h2></div>
             <span class="tag">ETF代理 · 自有映射算法</span>
@@ -94,7 +94,7 @@
           <div id="linkageList" class="linkage-list"><p class="muted">正在加载真实美股主题行情…</p></div>
         </article>
 
-        <article class="panel movers-panel">
+        <article class="panel movers-panel" data-section="sectors">
           <div class="panel-head">
             <div><p class="eyebrow">US STOCK MOVERS</p><h2>异动美股</h2></div>
             <span class="tag">公开报价 · 15秒刷新</span>
@@ -103,7 +103,7 @@
           <div id="moversList" class="movers-list"><p class="muted">正在扫描重点美股观察池…</p></div>
         </article>
 
-        <article class="panel news-panel">
+        <article class="panel news-panel" data-section="news">
           <div class="panel-head">
             <div><p class="eyebrow">VERIFIED INTELLIGENCE</p><h2>事实更新</h2></div>
             <button class="text-btn">查看全部 →</button>
@@ -111,7 +111,7 @@
           <div id="newsList"></div>
         </article>
 
-        <article class="panel trade-panel">
+        <article class="panel trade-panel" data-section="trades">
           <div class="panel-head">
             <div><p class="eyebrow">POST-TRADE WATCH</p><h2>交易后跟踪</h2></div>
             <span class="tag">2个监控中</span>
@@ -133,7 +133,7 @@
           </div>
         </article>
 
-        <article class="panel source-panel">
+        <article class="panel source-panel" data-section="sources">
           <div class="panel-head"><div><p class="eyebrow">DATA PROVENANCE</p><h2>数据健康</h2></div><span class="healthy"><i></i>系统正常</span></div>
           <div class="source-list">
             <div><span class="source-icon">行</span><div><b>行情主源</b><small id="sourceName">Yahoo Finance 公共报价 · 可能延迟</small></div><strong id="sourceLatency">连接中</strong></div>
