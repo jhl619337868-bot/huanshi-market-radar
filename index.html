@@ -33,7 +33,7 @@
       <button class="nav-item" data-view="trades"><span>◎</span>交易</button>
       <button class="nav-item" data-view="sources"><span>✓</span>数据</button>
       <div class="side-spacer"></div>
-      <div class="risk-badge"><span>风险状态</span><b>中性偏多</b><small>62 / 100</small></div>
+      <div class="risk-badge"><span>风险状态</span><b>观察模式</b><small>演示评分</small></div>
     </nav>
 
     <main>
@@ -41,13 +41,13 @@
         <div>
           <p class="eyebrow" id="marketDate">全球市场接力进行中</p>
           <h1>市场正在交易什么？</h1>
-          <p class="subtitle">美股科技扩散，能源分化；亚洲半导体信号已传导至欧美盘。</p>
+          <p class="subtitle">公开延迟行情已连接；新闻、市场宽度与交易信号仍需独立持牌数据源。</p>
         </div>
         <div class="session-strip">
-          <div><span>上海</span><b class="closed">已收盘</b><small>+0.42%</small></div>
-          <div><span>东京</span><b class="closed">已收盘</b><small>+1.08%</small></div>
-          <div><span>伦敦</span><b class="live">交易中</b><small>-0.16%</small></div>
-          <div><span>纽约</span><b class="live">交易中</b><small>+0.71%</small></div>
+          <div><span>上海</span><b class="closed">时段状态</b><small>待接入</small></div>
+          <div><span>东京</span><b class="closed">时段状态</b><small>待接入</small></div>
+          <div><span>伦敦</span><b class="closed">时段状态</b><small>待接入</small></div>
+          <div><span>纽约</span><b class="closed">时段状态</b><small>待接入</small></div>
         </div>
       </section>
 
@@ -78,10 +78,10 @@
             <span class="chart-label high" id="chartState">加载真实走势…</span><span class="chart-label low">开盘</span><span class="chart-label end">当前</span>
           </div>
           <div class="pulse-list">
-            <div><span>上涨 / 下跌</span><b>3,218 / 1,904</b></div>
-            <div><span>创新高 / 新低</span><b>186 / 42</b></div>
-            <div><span>板块一致性</span><b class="up">68%</b></div>
-            <div><span>异常成交</span><b class="warn">27只</b></div>
+            <div><span>上涨 / 下跌</span><b>待接入</b></div>
+            <div><span>创新高 / 新低</span><b>待接入</b></div>
+            <div><span>板块一致性</span><b>待计算</b></div>
+            <div><span>异常成交</span><b>待接入</b></div>
           </div>
         </aside>
 
@@ -137,8 +137,8 @@
           <div class="panel-head"><div><p class="eyebrow">DATA PROVENANCE</p><h2>数据健康</h2></div><span class="healthy"><i></i>系统正常</span></div>
           <div class="source-list">
             <div><span class="source-icon">行</span><div><b>行情主源</b><small id="sourceName">Yahoo Finance 公共报价 · 非交易所实时行情</small></div><strong id="sourceLatency">连接中</strong></div>
-            <div><span class="source-icon">公</span><div><b>官方公告</b><small>交易所披露 · 演示</small></div><strong>正常</strong></div>
-            <div><span class="source-icon">闻</span><div><b>新闻快讯</b><small>多源交叉验证 · 演示</small></div><strong>3源</strong></div>
+            <div><span class="source-icon">公</span><div><b>官方公告</b><small>尚未接入交易所公告授权接口</small></div><strong class="warn">待接入</strong></div>
+            <div><span class="source-icon">闻</span><div><b>新闻快讯</b><small>尚未接入持牌新闻源</small></div><strong class="warn">待接入</strong></div>
           </div>
           <div class="integrity"><div><span>数据完整度</span><b id="completeness">--</b></div><progress id="healthProgress" max="100" value="0"></progress><p>公开行情约5分钟刷新，交易所、复权与盘前盘后口径可能和券商不同；不构成投资建议或交易依据。</p></div>
         </article>
