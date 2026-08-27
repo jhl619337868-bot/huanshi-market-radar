@@ -1,4 +1,5 @@
 import json, os, time, urllib.parse, urllib.request
+import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 MACRO={"000001.SS":"上证指数","^HSI":"恒生指数","^IXIC":"纳斯达克","^GSPC":"标普500","DX-Y.NYB":"美元指数","GC=F":"黄金期货","CL=F":"WTI原油","^VIX":"恐慌指数"}
@@ -23,6 +24,35 @@ def fetch_with_retry(symbol):
         except Exception as exc:
             error=exc;time.sleep(.8*(attempt+1))
     raise error
+def tencent_code(symbol):
+    if symbol.endswith('.SS'):return 'sh'+symbol.split('.')[0]
+    if symbol.endswith('.SZ'):return 'sz'+symbol.split('.')[0]
+    if symbol.endswith('.HK'):return 'hk'+symbol.split('.')[0].zfill(5)
+    if symbol.startswith('^') or '=' in symbol:return None
+    return 'us'+symbol.replace('-','.')
+def fetch_tencent(symbol):
+    code=tencent_code(symbol)
+    if not code:raise ValueError('unsupported symbol')
+    url=f"https://web.ifzq.gtimg.cn/appstock/app/fqkline/get?param={code},day,,,10,qfq"
+    req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0 MarketRadarDemo/1.0"})
+    with urllib.request.urlopen(req,timeout=10) as response:obj=json.load(response)["data"][code]
+    qt=obj.get("qt",{}).get(code);rows=obj.get("qfqday") or obj.get("day") or []
+    if not qt:raise ValueError('empty quote')
+    price=float(qt[3]);previous=float(qt[4]);change=float(qt[32]);market_text=qt[30]
+    try:
+        clean=''.join(ch for ch in market_text if ch.isdigit());fmt='%Y%m%d%H%M%S';market_time=int(time.mktime(time.strptime(clean[:14],fmt)))
+    except Exception:market_time=int(time.time())
+    change5d=change
+    if len(rows)>=6:
+        older=float(rows[-6][2]);change5d=((price/older)-1)*100 if older else change
+    change5m=0
+    try:
+        minute_url=f"https://web.ifzq.gtimg.cn/appstock/app/minute/query?code={code}"
+        with urllib.request.urlopen(urllib.request.Request(minute_url,headers={"User-Agent":"Mozilla/5.0 MarketRadarDemo/1.0"}),timeout=8) as response:minute=json.load(response)["data"][code]["data"]["data"]
+        if len(minute)>=6:
+            latest=float(minute[-1].split()[1]);older=float(minute[-6].split()[1]);change5m=((latest/older)-1)*100 if older else 0
+    except Exception:pass
+    return {"symbol":symbol,"price":price,"change":change,"change5m":change5m,"change5d":change5d,"marketTime":market_time,"source":"腾讯行情公开接口"}
 def market_payload(scope="global"):
     scope=scope if scope in SECTOR_GROUPS else "global";label,proxy,sectors_map=SECTOR_GROUPS[scope];cached=CACHE.get(scope)
     if cached and time.time()-cached["at"]<12:return {**cached["data"],"stale":False}
@@ -32,11 +62,19 @@ def market_payload(scope="global"):
         for future in as_completed(futures):
             try:data[futures[future]]=future.result()
             except Exception:failures+=1
+    if scope in ("cn","hk"):
+        with ThreadPoolExecutor(max_workers=4) as pool:
+            futures={pool.submit(fetch_tencent,s):s for s in sectors_map}
+            for future in as_completed(futures):
+                symbol=futures[future]
+                try:
+                    primary=future.result();primary["chart"]=data.get(symbol,{}).get("chart",[]);data[symbol]=primary
+                except Exception:pass
     macro=[{"name":name,"symbol":s,"price":f"{data[s]['price']:,.2f}","change":data[s]["change"],"changeText":f"{data[s]['change']:+.2f}%"} for s,name in MACRO.items() if s in data]
-    sectors=[{"name":name,"symbol":s,"change":data[s]["change"],"change1d":data[s]["change"],"change5m":data[s]["change5m"],"change5d":data[s]["change5d"],"changeText":f"{data[s]['change']:+.2f}%"} for s,name in sectors_map.items() if s in data]
+    sectors=[{"name":name,"symbol":s,"change":data[s]["change"],"change1d":data[s]["change"],"change5m":data[s]["change5m"],"change5d":data[s]["change5d"],"source":data[s].get("source","Yahoo Finance公共报价"),"changeText":f"{data[s]['change']:+.2f}%"} for s,name in sectors_map.items() if s in data]
     linkage=[{"usName":SECTORS[s],"usSymbol":s,"usChange":data[s]["change"],"cnTheme":theme,"targets":targets,"strength":f"{min(99,round(55+abs(data[s]['change'])*12))}%"} for s,(theme,targets) in LINKS.items() if s in data]
     movers=sorted([{"name":name,"symbol":s,"price":data[s]["price"],"change":data[s]["change"],"cnTheme":theme,"reason":f"日内涨跌幅达到 {abs(data[s]['change']):.2f}%，系统识别为价格异动；具体驱动仍需结合公司公告和权威新闻核验。"} for s,(name,theme) in MOVERS.items() if s in data],key=lambda x:abs(x["change"]),reverse=True)[:6]
-    market_times=[data[s].get("marketTime",0) for s in sectors_map if s in data];payload={"macro":macro,"sectors":sectors,"sectorScope":scope,"sectorLabel":label,"sectorProxyType":proxy,"linkage":linkage,"movers":movers,"chart":data.get("^IXIC",{}).get("chart",[]),"completeness":round((len(symbols)-failures)/len(symbols)*100,1),"asOf":max(market_times,default=int(time.time()))*1000,"generatedAt":int(time.time()*1000),"feedType":"公开延迟行情","stale":False}
+    market_times=[data[s].get("marketTime",0) for s in sectors_map if s in data];sources=sorted(set(s.get("source","Yahoo Finance公共报价") for s in sectors));payload={"macro":macro,"sectors":sectors,"sectorScope":scope,"sectorLabel":label,"sectorProxyType":proxy,"feedSources":sources,"linkage":linkage,"movers":movers,"chart":data.get("^IXIC",{}).get("chart",[]),"completeness":round((len(data)/len(symbols))*100,1),"asOf":max(market_times,default=int(time.time()))*1000,"generatedAt":int(time.time()*1000),"feedType":"多源公开参考行情","stale":False}
     if macro:CACHE[scope]={"at":time.time(),"data":payload};return payload
     if cached:return {**cached["data"],"stale":True}
     return payload
