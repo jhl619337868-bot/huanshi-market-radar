@@ -8,24 +8,35 @@ LINKS={"SMH":("半导体/CPO","寒武纪、中际旭创、新易盛"),"BOTZ":("�
 MOVERS={"NVDA":("英伟达","AI算力、CPO、液冷"),"META":("Meta","虚拟现实、AI应用"),"TSLA":("特斯拉","新能源汽车、机器人"),"TSM":("台积电","半导体及元件"),"MU":("美光科技","存储芯片"),"SMCI":("超微电脑","服务器、液冷"),"PLTR":("Palantir","数据要素、AI软件"),"GOOGL":("谷歌","云计算、AI应用"),"AMZN":("亚马逊","跨境电商、云计算"),"AAPL":("苹果","消费电子、果链")}
 CACHE={}
 def fetch_symbol(symbol):
-    url=f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(symbol,safe='')}?interval=1m&range=1d";req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0 MarketRadarDemo/1.0"})
+    url=f"https://query1.finance.yahoo.com/v8/finance/chart/{urllib.parse.quote(symbol,safe='')}?interval=5m&range=5d";req=urllib.request.Request(url,headers={"User-Agent":"Mozilla/5.0 MarketRadarDemo/1.0"})
     with urllib.request.urlopen(req,timeout=8) as response:result=json.load(response)["chart"]["result"][0]
-    meta=result["meta"];values=[v for v in result.get("indicators",{}).get("quote",[{}])[0].get("close",[]) if v is not None];price=meta.get("regularMarketPrice") or (values[-1] if values else None);previous=meta.get("chartPreviousClose") or meta.get("previousClose");change=((price/previous)-1)*100 if price and previous else 0
-    return {"symbol":symbol,"price":price,"change":change,"chart":values[-180:]}
+    meta=result["meta"];raw=result.get("indicators",{}).get("quote",[{}])[0].get("close",[]);timestamps=result.get("timestamp",[]);points=[(t,v) for t,v in zip(timestamps,raw) if v is not None];values=[v for _,v in points];price=meta.get("regularMarketPrice") or (values[-1] if values else None);previous=meta.get("chartPreviousClose") or meta.get("previousClose");change=((price/previous)-1)*100 if price and previous else 0
+    def period_change(seconds):
+        if not points:return 0
+        latest_t,latest_v=points[-1];target=latest_t-seconds;older=min(points,key=lambda p:abs(p[0]-target))[1]
+        return ((latest_v/older)-1)*100 if older else 0
+    return {"symbol":symbol,"price":price,"change":change,"change5m":period_change(300),"change5d":period_change(5*86400),"chart":values[-180:],"marketTime":meta.get("regularMarketTime") or (points[-1][0] if points else int(time.time()))}
+def fetch_with_retry(symbol):
+    error=None
+    for attempt in range(3):
+        try:return fetch_symbol(symbol)
+        except Exception as exc:
+            error=exc;time.sleep(.8*(attempt+1))
+    raise error
 def market_payload(scope="global"):
     scope=scope if scope in SECTOR_GROUPS else "global";label,proxy,sectors_map=SECTOR_GROUPS[scope];cached=CACHE.get(scope)
     if cached and time.time()-cached["at"]<12:return {**cached["data"],"stale":False}
     symbols=list(MACRO)+list(sectors_map)+list(MOVERS);data={};failures=0
-    with ThreadPoolExecutor(max_workers=8) as pool:
-        futures={pool.submit(fetch_symbol,s):s for s in symbols}
+    with ThreadPoolExecutor(max_workers=4) as pool:
+        futures={pool.submit(fetch_with_retry,s):s for s in symbols}
         for future in as_completed(futures):
             try:data[futures[future]]=future.result()
             except Exception:failures+=1
     macro=[{"name":name,"symbol":s,"price":f"{data[s]['price']:,.2f}","change":data[s]["change"],"changeText":f"{data[s]['change']:+.2f}%"} for s,name in MACRO.items() if s in data]
-    sectors=[{"name":name,"symbol":s,"change":data[s]["change"],"changeText":f"{data[s]['change']:+.2f}%"} for s,name in sectors_map.items() if s in data]
+    sectors=[{"name":name,"symbol":s,"change":data[s]["change"],"change1d":data[s]["change"],"change5m":data[s]["change5m"],"change5d":data[s]["change5d"],"changeText":f"{data[s]['change']:+.2f}%"} for s,name in sectors_map.items() if s in data]
     linkage=[{"usName":SECTORS[s],"usSymbol":s,"usChange":data[s]["change"],"cnTheme":theme,"targets":targets,"strength":f"{min(99,round(55+abs(data[s]['change'])*12))}%"} for s,(theme,targets) in LINKS.items() if s in data]
     movers=sorted([{"name":name,"symbol":s,"price":data[s]["price"],"change":data[s]["change"],"cnTheme":theme,"reason":f"日内涨跌幅达到 {abs(data[s]['change']):.2f}%，系统识别为价格异动；具体驱动仍需结合公司公告和权威新闻核验。"} for s,(name,theme) in MOVERS.items() if s in data],key=lambda x:abs(x["change"]),reverse=True)[:6]
-    payload={"macro":macro,"sectors":sectors,"sectorScope":scope,"sectorLabel":label,"sectorProxyType":proxy,"linkage":linkage,"movers":movers,"chart":data.get("^IXIC",{}).get("chart",[]),"completeness":round((len(symbols)-failures)/len(symbols)*100,1),"asOf":int(time.time()*1000),"stale":False}
+    market_times=[data[s].get("marketTime",0) for s in sectors_map if s in data];payload={"macro":macro,"sectors":sectors,"sectorScope":scope,"sectorLabel":label,"sectorProxyType":proxy,"linkage":linkage,"movers":movers,"chart":data.get("^IXIC",{}).get("chart",[]),"completeness":round((len(symbols)-failures)/len(symbols)*100,1),"asOf":max(market_times,default=int(time.time()))*1000,"generatedAt":int(time.time()*1000),"feedType":"公开延迟行情","stale":False}
     if macro:CACHE[scope]={"at":time.time(),"data":payload};return payload
     if cached:return {**cached["data"],"stale":True}
     return payload
